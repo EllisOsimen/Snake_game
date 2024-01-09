@@ -2,7 +2,7 @@ import javax.swing.*;
 
 public class App {
     public static void main(String[] args) throws Exception {
-        int boardwidth = 800;
+        int boardwidth = 600;
         int boardheight = boardwidth;
 
         JFrame frame = new JFrame("snake");
@@ -15,5 +15,6 @@ public class App {
         SnakeGame snakeGame = new SnakeGame(boardwidth, boardheight);
         frame.add(snakeGame);
         frame.pack();
+        snakeGame.requestFocus();
     }
 }
