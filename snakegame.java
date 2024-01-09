@@ -28,6 +28,7 @@ public class SnakeGame extends JPanel implements ActionListener, KeyListener{
     Timer gameLoop;
     int velocityX;
     int velocityY;
+    boolean gameOver = false;
      
     SnakeGame (int boardwidth, int boardheight){
         this.boardheight = boardheight;
@@ -69,20 +70,61 @@ public class SnakeGame extends JPanel implements ActionListener, KeyListener{
         //Snake
         g.setColor(Color.cyan);
         g.fillRect(snakeHead.x*tileSize, snakeHead.y*tileSize, tileSize, tileSize);
+        //snakebody
+        for(int i =0;i<snakeBody.size();i++){
+            Tile snakePart = snakeBody.get(i);
+            g.fillRect(snakePart.x*tileSize, snakePart.y*tileSize, tileSize, tileSize);
+        }
     }
     public void placeFood(){
         food.x = random.nextInt(boardwidth/tileSize); //random int between 0 and boardwidth/tileSize
-        food.x = random.nextInt(boardheight/tileSize);
+        food.y = random.nextInt(boardheight/tileSize);
 
     }
+    public boolean collision (Tile tile1,Tile tile2){
+        return tile1.x == tile2.x && tile1.y == tile2.y;
+    }
     public void move(){
+        if (collision(snakeHead, food)){
+        snakeBody.add(new Tile(food.x, food.y));
+        placeFood();
+        }
+
+        //snake body
+        for(int i = snakeBody.size()-1;i>=0;i--){
+            Tile snakePart = snakeBody.get(i);
+            if (i==0){
+                snakePart.x = snakeHead.x;
+                snakePart.y = snakeHead.y;
+
+            }
+            else{
+                Tile prevsnakePart = snakeBody.get(i-1);
+                snakePart.x = prevsnakePart.x;
+                snakePart.y = prevsnakePart.y;
+            }
+        }
+
         snakeHead.x += velocityX;
         snakeHead.y += velocityY;
+
+        //game over
+        for(int i =0;i<snakeBody.size();i++){
+            if (snakeHead.x == snakeBody.get(i).x && snakeHead.y == snakeBody.get(i).y) {
+                gameOver = true;
+            }
+        }
+        if ((snakeHead.x ==0)||(snakeHead.x == boardwidth)||(snakeHead.y == 0)||(snakeHead.y == boardheight)) {
+            gameOver = true;
+        }
     }
     @Override
     public void actionPerformed(ActionEvent e) {
         move();
         repaint();
+        if (gameOver){
+            gameLoop.stop();
+        }
        }
     
     @Override
