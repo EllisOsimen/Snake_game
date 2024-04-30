@@ -26,6 +26,7 @@ public class snakegame extends JPanel implements ActionListener, KeyListener{
     //Food
     Tile food;
     Tile speedBoost;
+    Tile shrinkBooster;
     Random random;
     //game logic
     Timer gameLoop;
@@ -48,6 +49,7 @@ public class snakegame extends JPanel implements ActionListener, KeyListener{
         random = new Random();
         placeFood();
         Boosters();
+        manageShrinkBooster();
 
         velocityX = 0;
         velocityY = 0;
@@ -89,6 +91,10 @@ public class snakegame extends JPanel implements ActionListener, KeyListener{
         }
         g.setColor(Color.yellow);
         g.fillRect(speedBoost.x * tileSize, speedBoost.y * tileSize, tileSize, tileSize);
+        if (shrinkBooster != null) {
+            g.setColor(Color.green);  // Choose a color that stands out
+            g.fillRect(shrinkBooster.x * tileSize, shrinkBooster.y * tileSize, tileSize, tileSize);
+        }
     }
     public void placeFood(){
         food.x = random.nextInt(boardwidth/tileSize); //random int between 0 and boardwidth/tileSize
@@ -124,6 +130,26 @@ public class snakegame extends JPanel implements ActionListener, KeyListener{
         velocityY = 0;
         gameLoop.start(); 
     }
+    void manageShrinkBooster() {
+        // Place the booster immediately, then make it appear every 20 seconds
+        placeShrinkBooster();
+        new Timer(20000, e -> {
+            placeShrinkBooster();
+            // Make the booster visible for only 3 seconds
+            new Timer(3000, ev -> {
+                shrinkBooster = null;
+                ((Timer) ev.getSource()).stop();
+                repaint(); // Ensure the game repaints to reflect the booster disappearing
+            }).start();
+        }).start();
+    }
+    
+    void placeShrinkBooster() {
+        do {
+            shrinkBooster = new Tile(random.nextInt(boardwidth / tileSize), random.nextInt(boardheight / tileSize));
+        } while (collision(shrinkBooster, food) || collision(shrinkBooster, speedBoost));  // Ensure it doesn't overlap
+    }
+    
     public void move(){
         if (collision(snakeHead, food)){
         snakeBody.add(new Tile(food.x, food.y));
@@ -166,6 +192,14 @@ public class snakegame extends JPanel implements ActionListener, KeyListener{
         if (collision(snakeHead, speedBoost)) {
             increaseSpeed();
             Boosters();  // Re-place the power-up
+        }
+        if (shrinkBooster != null && collision(snakeHead, shrinkBooster)) {
+            int reduceBy = snakeBody.size() / 2;
+            while (reduceBy > 0 && !snakeBody.isEmpty()) {
+                snakeBody.remove(snakeBody.size() - 1);  // Remove the last element
+                reduceBy--;
+            }
+            shrinkBooster = null;  // Remove the booster once consumed
         }
     }
     @Override
